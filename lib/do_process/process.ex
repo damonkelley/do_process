@@ -1,101 +1,45 @@
-defmodule DoProcess.Result do
-  defstruct [exit_status: nil]
-end
-
 defmodule DoProcess.Process do
   use GenServer
-  alias DoProcess.Result
 
-  def start_link(executable, args \\ [], callback \\ Port) do
-    GenServer.start_link(__MODULE__, {executable, args, callback})
-  end
-
-  def init({executable, args, callback}) do
-    {:ok,
-      %{port: callback.open({:spawn_executable, executable}, [:binary, :exit_status, :stderr_to_stdout, args: args]),
-        callback: callback,
-        exit_status: nil,
-        subscribers: [],
-        output: "",
-        result: %Result{exit_status: :in_progress}}}
-  end
-
-  def await(pid, timeout \\ :infinity) do
-    subscribe(pid)
-    receive do
-      {_ref, {:result, result}} -> result
-    after
-      timeout -> result(pid)
-    end
-  end
-
-  def result(pid) do
-    GenServer.call(pid, :result)
-  end
-
-  def output(pid) do
-    GenServer.call(pid, :output)
-  end
-
-  def input(pid, input) do
-    GenServer.cast(pid, {:input, input})
+  def start_link(config) do
+    GenServer.start_link(__MODULE__, config)
   end
 
   def kill(pid) do
     GenServer.cast(pid, :kill)
-    pid
   end
 
-  def handle_call(:subscribe, from, %{subscribers: subscribers} = state) do
-    {:reply, :ok, %{state | subscribers: [from | subscribers]}}
+  def init(%{command: command, args: args, collector: collector} = _config) do
+    port = Port.open({:spawn_executable, command}, [:binary, :exit_status, :stderr_to_stdout, args: args])
+    ref = :erlang.monitor(:port, port)
+    {:ok, %{port: port, ref: ref, collector: collector}}
   end
 
-  def handle_call(:result, _from, %{result: result} = state) do
-    {:reply, result, state}
-  end
-
-  def handle_call(:output, _from, %{output: output} = state) do
-    {:reply, output, state}
-  end
-
-  def handle_cast({:input, input}, %{port: port, callback: callback} = state) do
-    callback.command(port, input)
+  def handle_cast(:kill, %{port: port} = state) do
+    Port.close(port)
     {:noreply, state}
   end
 
-  def handle_cast(:finished, %{subscribers: subscribers} = state) do
-    subscribers
-    |> Enum.map(fn s -> GenServer.reply(s, :continue) end)
+  def handle_info({port, {:data, data}}, %{port: port, collector: collector} = state) do
+    collect(collector, :stdout, data)
     {:noreply, state}
   end
 
-  def handle_cast(:kill, %{result: result, callback: callback, port: port} = state) do
-    callback.close(port)
-    {:noreply, %{state | result: %Result{result | exit_status: :killed}}}
+  def handle_info({port, {:exit_status, 0}}, %{collector: collector, port: port} = state) do
+    collect(collector, :exit_status, 0)
+    {:stop, :normal, state}
   end
 
-  def handle_info({port, {:exit_status, exit_status}}, %{port: port, subscribers: subscribers, result: result} = state) do
-    result = %Result{result| exit_status: exit_status}
-
-    notify(subscribers, {:result, result})
-
-    {:noreply, %{state | result: result}}
+  def handle_info({port, {:exit_status, exit_status}}, %{collector: collector, port: port} = state) do
+    collect(collector, :exit_status, exit_status)
+    {:stop, :error, state}
   end
 
-  def handle_info({port, {:data, data}}, %{port: port, output: output} = state) do
-    {:noreply, %{state | output: output <> data}}
+  def handle_info({:DOWN, ref, :port, port, :normal}, %{ref: ref, port: port} = state) do
+    {:stop, :normal, state}
   end
 
-  def handle_info(_msg, state) do
-    {:noreply, state}
-  end
-
-  defp subscribe(pid) do
-    GenServer.call(pid, :subscribe)
-  end
-
-  defp notify(subscribers, msg) do
-    subscribers
-    |> Enum.map(fn s -> GenServer.reply(s, msg) end)
+  defp collect(collector, tag, data) do
+    DoProcess.ResultCollector.collect(collector, tag, data)
   end
 end

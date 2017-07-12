@@ -5,62 +5,71 @@ defmodule DoProcess.ProcessTest do
 
   @moduletag :posix
 
-  test "it will start a command" do
-    {:ok, pid} = Process.start_link "/bin/echo", ["hello world!"]
-    result = Process.await(pid, 100)
-
-    assert 0 == result.exit_status
+  setup do
+    Elixir.Process.flag(:trap_exit, true)
+    {:ok, collector} = DoProcess.ResultCollector.start_link()
+    {:ok, [collector: collector]}
   end
 
-  test "it can have a error exit status" do
-    {:ok, pid} = Process.start_link "/bin/bash", ["-c", "not a command"]
-    result = Process.await(pid, 100)
+  test "it will run a command", %{collector: collector} do
+    {:ok, pid} =
+      %{command: "/bin/echo", args: ["hello world"], collector: collector}
+      |> Process.start_link
 
-    assert 127 == result.exit_status
+    ref = Elixir.Process.monitor(pid)
+    assert_receive {:DOWN, ^ref, :process, ^pid, :normal}
   end
 
-  test "it will capture stderr" do
-    {:ok, pid} = Process.start_link "/bin/bash", ["-c", "not a command"]
+  @tag capture_log: true
+  test "it will terminate with an error the port exits with a non-zero", %{collector: collector} do
+    {:ok, pid} =
+      %{command: "/bin/bash", args: ["-c", "not-a-command"], collector: collector}
+      |> Process.start_link
 
-    Process.await(pid, 100)
-    output = Process.output(pid)
-
-    assert output =~ "command not found\n"
+    ref = Elixir.Process.monitor(pid)
+    assert_receive {:DOWN, ^ref, :process, ^pid, :error}
   end
 
-  test "it will have a result of in progress if the process isn't finished" do
-    {:ok, pid} = Process.start_link "/bin/cat"
+  test "it will terminate normally if the port is killed", %{collector: collector} do
+    {:ok, pid} =
+      %{command: "/bin/cat", args: [], collector: collector}
+      |> Process.start_link
 
-    result = Process.result(pid)
+    ref = Elixir.Process.monitor(pid)
+    :ok = Process.kill(pid)
 
-    assert :in_progress == result.exit_status
+    assert_receive {:DOWN, ^ref, :process, ^pid, :normal}
   end
 
-  test "it will collect output" do
-    {:ok, pid} = Process.start_link "/bin/echo", ["hello, world!"]
+  test "it will capture stdout", %{collector: collector} do
+      %{command: "/bin/echo", args: ["hello, world!"], collector: collector}
+      |> Process.start_link
 
-    Process.await(pid, 100)
+    :timer.sleep(100)
 
-    assert "hello, world!\n" == Process.output(pid)
+    %{stdout: stdout} = DoProcess.ResultCollector.inspect(collector)
+    assert "hello, world!\n" == stdout
   end
 
-  test "it will accept input" do
-    {:ok, pid} = Process.start_link "/bin/cat"
+  @tag capture_log: true
+  test "it will capture stderr", %{collector: collector} do
+    {:ok, _pid} =
+      %{command: "/bin/bash", args: ["-c", "not-a-command"], collector: collector}
+      |> Process.start_link
 
-    Process.input(pid, "foo bar")
-    :timer.sleep 100
+    :timer.sleep(100)
 
-    assert "foo bar" == Process.output(pid)
+    %{stdout: stdout} = DoProcess.ResultCollector.inspect(collector)
+    assert stdout =~ "command not found"
   end
 
-  test "it can be killed" do
-    {:ok, pid} = Process.start_link "/bin/cat"
+  test "it will forward the exit status to the collector", %{collector: collector} do
+      %{command: "/bin/echo", args: ["hello world"], collector: collector}
+      |> Process.start_link
 
-    result =
-      pid
-      |> Process.kill
-      |> Process.await(50)
+    :timer.sleep(100)
 
-    assert :killed == result.exit_status
+    %{exit_status: exit_status} = DoProcess.ResultCollector.inspect(collector)
+    assert 0 == exit_status
   end
 end
