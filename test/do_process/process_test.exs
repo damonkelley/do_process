@@ -45,7 +45,7 @@ defmodule DoProcess.ProcessTest do
       %{command: "/bin/echo", args: ["hello, world!"], collector: collector}
       |> Process.start_link
 
-    :timer.sleep(100)
+    :timer.sleep(5)
 
     %{stdout: stdout} = DoProcess.ResultCollector.inspect(collector)
     assert "hello, world!\n" == stdout
@@ -57,7 +57,7 @@ defmodule DoProcess.ProcessTest do
       %{command: "/bin/bash", args: ["-c", "not-a-command"], collector: collector}
       |> Process.start_link
 
-    :timer.sleep(100)
+    :timer.sleep(5)
 
     %{stdout: stdout} = DoProcess.ResultCollector.inspect(collector)
     assert stdout =~ "command not found"
@@ -67,7 +67,7 @@ defmodule DoProcess.ProcessTest do
       %{command: "/bin/echo", args: ["hello world"], collector: collector}
       |> Process.start_link
 
-    :timer.sleep(100)
+    :timer.sleep(5)
 
     %{exit_status: exit_status} = DoProcess.ResultCollector.inspect(collector)
     assert 0 == exit_status
