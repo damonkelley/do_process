@@ -1,13 +1,14 @@
-defmodule DoProcess.FakeProcess do
+defmodule DoProcess.Process.FakeWorker do
   use GenServer
 
-  alias DoProcess.ResultCollector
+  alias DoProcess.Process.ResultCollector
 
   def start_link(config) do
     GenServer.start_link(__MODULE__, config)
   end
 
-  def init(%{collector: collector, exit_status: exit_status} = _config) do
+  def init(%{collector: collector, process_args: process_args} = _config) do
+    %{exit_status: exit_status} = process_args
     send(self(), {:port, {:data, "started "}})
     send(self(), {:port, {:exit_status, exit_status}})
     {:ok, collector}

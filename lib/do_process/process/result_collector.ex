@@ -1,4 +1,4 @@
-defmodule DoProcess.ResultCollector do
+defmodule DoProcess.Process.ResultCollector do
   defmodule Result do
     defstruct [stdout: "", stderr: "", exit_status: :unknown]
   end

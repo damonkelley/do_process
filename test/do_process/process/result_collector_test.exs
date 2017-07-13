@@ -1,7 +1,7 @@
-defmodule DoProcess.ResultCollectorTest do
+defmodule DoProcess.Process.ResultCollectorTest do
   use ExUnit.Case, async: true
 
-  alias DoProcess.ResultCollector
+  alias DoProcess.Process.ResultCollector
 
   test "it will append the stdout output" do
     {:ok, pid} = ResultCollector.start_link()
