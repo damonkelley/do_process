@@ -4,7 +4,11 @@ defmodule DoProcess.Process.Worker do
   alias DoProcess.Process.ResultCollector
 
   def start_link(config) do
-    GenServer.start_link(__MODULE__, config)
+    GenServer.start_link(__MODULE__, config, name: via_tuple(config))
+  end
+
+  defp via_tuple(config) do
+    {:via, Registry, {config.registry, {:worker, config.name}}}
   end
 
   def kill(pid) do

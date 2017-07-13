@@ -3,23 +3,20 @@ defmodule DoProcess.Process.WorkerSupervisorTest do
 
   alias DoProcess.Process.WorkerSupervisor
   alias DoProcess.Process.ResultCollector
-  alias DoProcess.Process.FakeWorker
   alias DoProcess.Process.Config
 
   setup do
     Process.flag(:trap_exit, true)
-    {:ok, collector} = ResultCollector.start_link
 
-    config = %Config{
-      process_args: %{command: "fake-command", args: [], exit_status: 0},
-      process_module: FakeWorker,
-      restarts: 3,
-      collector: collector}
+    config =
+      TestConfig.new
+      |> Config.restarts(3)
+      |> TestConfig.start_collector(ResultCollector, :start_link)
 
     {:ok, [config: config]}
   end
 
-  test "A process will be started", %{config: config} do
+  test "it will start a process will be started", %{config: config} do
     WorkerSupervisor.start_link(config)
 
     %{stdout: stdout} = ResultCollector.inspect(config.collector)
@@ -27,8 +24,8 @@ defmodule DoProcess.Process.WorkerSupervisorTest do
   end
 
   @tag capture_log: true
-  test "A process will be restarted if is exits abnormally", %{config: config} do
-    config = %Config{config | process_args: %{command: "command", args: [], exit_status: 1}}
+  test "it will restart a process if is exits abnormally", %{config: config} do
+    config = TestConfig.exit_status(config, 1)
 
     {:ok, pid} = WorkerSupervisor.start_link(config)
 
