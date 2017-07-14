@@ -8,10 +8,10 @@ defmodule DoProcess.Process.ResultCollectorTest do
   end
 
   test "it will append the stdout output", %{config: config} do
-    {:ok, pid} = ResultCollector.start_link(config)
+    ResultCollector.start_link(config)
 
     result =
-      pid
+      config
       |> ResultCollector.collect(:stdout, "hello ")
       |> ResultCollector.collect(:stdout, "world")
       |> ResultCollector.collect(:stdout, "!!!")
@@ -21,10 +21,10 @@ defmodule DoProcess.Process.ResultCollectorTest do
   end
 
   test "it will collect an exit_status", %{config: config} do
-    {:ok, pid} = ResultCollector.start_link(config)
+    ResultCollector.start_link(config)
 
     result =
-      pid
+      config
       |> ResultCollector.collect(:exit_status, 127)
       |> ResultCollector.inspect
 
@@ -32,9 +32,9 @@ defmodule DoProcess.Process.ResultCollectorTest do
   end
 
   test "it has a default exit_status of :unknown", %{config: config} do
-    {:ok, pid} = ResultCollector.start_link(config)
+    ResultCollector.start_link(config)
 
-    result = pid |> ResultCollector.inspect
+    result = config |> ResultCollector.inspect
 
     assert :unknown == result.exit_status
   end

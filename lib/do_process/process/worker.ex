@@ -11,8 +11,8 @@ defmodule DoProcess.Process.Worker do
     {:via, Registry, {config.registry, {:worker, config.name}}}
   end
 
-  def kill(pid) do
-    GenServer.cast(pid, :kill)
+  def kill(config) do
+    GenServer.cast(via_tuple(config), :kill)
   end
 
   def init(%{process_args: %{command: command, args: args}} = config) do
@@ -27,17 +27,17 @@ defmodule DoProcess.Process.Worker do
   end
 
   def handle_info({port, {:data, data}}, %{port: port, config: config} = state) do
-    collect(config.collector, :stdout, data)
+    collect(config, :stdout, data)
     {:noreply, state}
   end
 
   def handle_info({port, {:exit_status, 0}}, %{config: config, port: port} = state) do
-    collect(config.collector, :exit_status, 0)
+    collect(config, :exit_status, 0)
     {:stop, :normal, state}
   end
 
   def handle_info({port, {:exit_status, exit_status}}, %{config: config, port: port} = state) do
-    collect(config.collector, :exit_status, exit_status)
+    collect(config, :exit_status, exit_status)
     {:stop, :error, state}
   end
 
@@ -45,7 +45,8 @@ defmodule DoProcess.Process.Worker do
     {:stop, :normal, state}
   end
 
-  defp collect(collector, tag, data) do
-    ResultCollector.collect(collector, tag, data)
+  defp collect(config, tag, data) do
+    config
+    |> ResultCollector.collect(tag, data)
   end
 end

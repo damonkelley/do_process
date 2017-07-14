@@ -19,8 +19,7 @@ defmodule DoProcess.Process.WorkerSupervisorTest do
   test "it will start a process will be started", %{config: config} do
     WorkerSupervisor.start_link(config)
 
-    %{stdout: stdout} = ResultCollector.inspect(config.collector)
-    assert "started " == stdout
+    assert "started " == stdout(config)
   end
 
   @tag capture_log: true
@@ -30,8 +29,13 @@ defmodule DoProcess.Process.WorkerSupervisorTest do
     {:ok, pid} = WorkerSupervisor.start_link(config)
 
     assert_receive {:EXIT, ^pid, :shutdown}
+    assert "started started started started " == stdout(config)
+  end
 
-    %{stdout: stdout} = ResultCollector.inspect(config.collector)
-    assert "started started started started " == stdout
+  defp stdout(config) do
+    %{stdout: stdout} =
+      config
+      |> ResultCollector.inspect
+    stdout
   end
 end

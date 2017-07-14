@@ -1,16 +1,16 @@
 defmodule TestConfig do
   alias DoProcess.Process.Config
 
-  @default_process_args %{command: "/bin/echo", args: ["hello, world"], exit_status: 0}
-
-  def new(process_args \\ @default_process_args) do
+  def new, do: default_process_args() |> new()
+  def new(process_args) do
     %Config{
       name: name(),
       process_args: process_args,
       process_module: DoProcess.Process.FakeWorker}
   end
 
-  def posix(process_args \\ @default_process_args) do
+  def posix, do: default_process_args() |> posix()
+  def posix(process_args) do
     %Config{new(process_args) | process_module: DoProcess.Process.Worker}
   end
 
@@ -20,11 +20,18 @@ defmodule TestConfig do
   end
 
   def exit_status(%{process_args: args} = config, exit_status) do
-    %Config{config | process_args: Map.put(args, :exit_status, exit_status)}
+    startup_fn = fn _ -> send self(), {:port, {:exit_status, exit_status}} end
+    %Config{config | process_args: Map.put(args, :startup_fn, startup_fn)}
   end
 
   def start_collector(config, m, f) do
-    {:ok, pid} = apply(m, f, [config])
-    Config.collector(config, pid)
+    apply(m, f, [config])
+    config
+  end
+
+  defp default_process_args do
+    %{command: "/bin/echo",
+      args: ["hello, world"],
+      startup_fn: fn _ -> nil end}
   end
 end

@@ -15,18 +15,18 @@ defmodule DoProcess.Process.ResultCollector do
     {:ok, initial}
   end
 
-  def collect(pid, :stdout, data) do
-    GenServer.cast(pid, {:stdout, data})
-    pid
+  def collect(config, :stdout, data) do
+    GenServer.cast(via_tuple(config), {:stdout, data})
+    config
   end
 
-  def collect(pid, :exit_status, data) do
-    GenServer.cast(pid, {:exit_status, data})
-    pid
+  def collect(config, :exit_status, data) do
+    GenServer.cast(via_tuple(config), {:exit_status, data})
+    config
   end
 
-  def inspect(pid) do
-    GenServer.call(pid, :inspect)
+  def inspect(config) do
+    GenServer.call(via_tuple(config), :inspect)
   end
 
   def handle_cast({:stdout, data}, %{stdout: stdout} = state) do
