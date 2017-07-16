@@ -16,7 +16,9 @@ defmodule DoProcess.Process.Worker do
   end
 
   def init(%{process_args: %{command: command, args: args}} = config) do
-    port = Port.open({:spawn_executable, command}, [:binary, :exit_status, :stderr_to_stdout, args: args])
+    port = Port.open({:spawn_executable, command},
+                     [:binary, :exit_status, :stderr_to_stdout, args: args])
+
     ref = :erlang.monitor(:port, port)
     {:ok, %{port: port, ref: ref, config: config}}
   end
@@ -46,7 +48,6 @@ defmodule DoProcess.Process.Worker do
   end
 
   defp collect(config, tag, data) do
-    config
-    |> ResultCollector.collect(tag, data)
+    ResultCollector.collect(config, tag, data)
   end
 end

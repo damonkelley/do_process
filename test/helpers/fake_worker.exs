@@ -10,6 +10,10 @@ defmodule DoProcess.Process.FakeWorker do
       name: {:via, Registry, {config.registry, {:worker, config.name}}})
   end
 
+  def via_tuple(config) do
+      {:via, Registry, {config.registry, {:worker, config.name}}}
+  end
+
   def init(%{process_args: process_args} = config) do
     %{startup_fn: fun} = process_args
     send(self(), {:port, {:data, "started "}})
@@ -17,7 +21,8 @@ defmodule DoProcess.Process.FakeWorker do
     {:ok, config}
   end
 
-  def kill(_server) do
+  def kill(config) do
+    GenServer.stop(via_tuple(config))
   end
 
   def handle_info({:port, {:data, data}}, config) do
