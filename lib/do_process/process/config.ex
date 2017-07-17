@@ -3,7 +3,7 @@ defmodule DoProcess.Process.Config do
 
   defstruct [name: nil,
              process_args: nil,
-             process_module: DoProcess.Process.Worker,
+             worker_module: DoProcess.Process.Worker,
              registry: DoProcess.Registry,
              restarts: 0]
 

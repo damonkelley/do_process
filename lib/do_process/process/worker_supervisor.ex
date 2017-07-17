@@ -5,7 +5,7 @@ defmodule DoProcess.Process.WorkerSupervisor do
     Supervisor.start_link(__MODULE__, config)
   end
 
-  def init(%{restarts: restarts, process_module: module} = config) do
+  def init(%{restarts: restarts, worker_module: module} = config) do
     children = [
       worker(module, [config], restart: :transient),
     ]

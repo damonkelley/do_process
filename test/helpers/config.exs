@@ -6,12 +6,12 @@ defmodule TestConfig do
     %Config{
       name: name(),
       process_args: process_args,
-      process_module: DoProcess.Process.FakeWorker}
+      worker_module: DoProcess.Process.FakeWorker}
   end
 
   def posix, do: default_process_args() |> posix()
   def posix(process_args) do
-    %Config{new(process_args) | process_module: DoProcess.Process.Worker}
+    %Config{new(process_args) | worker_module: DoProcess.Process.Worker}
   end
 
   def name do
