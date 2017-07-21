@@ -7,11 +7,13 @@ defmodule DoProcess.Process.WorkerSupervisorTest do
 
   setup do
     Process.flag(:trap_exit, true)
-
     config =
       TestConfig.new
       |> Config.restarts(3)
-      |> TestConfig.start_collector(ResultCollector, :start_link)
+      |> TestConfig.unique_registry_name
+
+    {:ok, _} = DoProcess.Registry.start_link(config.registry)
+    {:ok, _} = ResultCollector.start_link(config)
 
     {:ok, [config: config]}
   end

@@ -24,9 +24,8 @@ defmodule TestConfig do
     %Config{config | process_args: Map.put(args, :startup_fn, startup_fn)}
   end
 
-  def start_collector(config, m, f) do
-    apply(m, f, [config])
-    config
+  def unique_registry_name(%{name: name} = config) do
+    %Config{config | registry: String.to_atom(name)}
   end
 
   defp default_process_args do

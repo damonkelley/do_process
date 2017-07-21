@@ -4,7 +4,12 @@ defmodule DoProcess.Process.ResultCollectorTest do
   alias DoProcess.Process.ResultCollector
 
   setup do
-    {:ok, [config: TestConfig.new]}
+    config = TestConfig.new
+             |> TestConfig.unique_registry_name
+
+    {:ok, _} = DoProcess.Registry.start_link(config.registry)
+
+    {:ok, [config: config]}
   end
 
   test "it will append the stdout output", %{config: config} do
