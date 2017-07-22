@@ -35,9 +35,7 @@ defmodule DoProcess.Process.WorkerSupervisorTest do
   end
 
   defp stdout(proc) do
-    %{stdout: stdout} =
-      proc
-      |> ResultCollector.inspect
+    %{stdout: stdout} = ResultCollector.inspect(proc)
     stdout
   end
 end

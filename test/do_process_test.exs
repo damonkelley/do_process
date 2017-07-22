@@ -3,6 +3,10 @@ defmodule DoProcessTest do
 
   alias DoProcess.Process, as: Proc
 
+  setup do
+    Application.ensure_started(:do_process)
+  end
+
   test "it will create a process that exits successfully" do
     result =
       TestProcess.new
