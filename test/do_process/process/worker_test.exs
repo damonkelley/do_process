@@ -3,7 +3,7 @@ defmodule DoProcess.Process.WorkerTest do
 
   alias DoProcess.Process.Worker
   alias DoProcess.Process, as: Proc
-  alias DoProcess.Process.ResultCollector
+  alias DoProcess.Process.Server
 
   @moduletag :posix
 
@@ -14,7 +14,7 @@ defmodule DoProcess.Process.WorkerTest do
       |> TestProcess.unique_registry_name
 
     {:ok, _} = DoProcess.Registry.start_link(proc.options.registry)
-    {:ok, _} = ResultCollector.start_link(proc)
+    {:ok, _} = Server.start_link(proc)
 
     {:ok, [proc: proc]}
   end
@@ -67,7 +67,7 @@ defmodule DoProcess.Process.WorkerTest do
 
     %{stdout: stdout} =
       proc
-      |> ResultCollector.inspect
+      |> Server.result
     assert "hello, world!\n" == stdout
   end
 
@@ -84,11 +84,11 @@ defmodule DoProcess.Process.WorkerTest do
 
     %{stdout: stdout} =
       proc
-      |> ResultCollector.inspect
+      |> Server.result
     assert stdout =~ "command not found"
   end
 
-  test "it will forward the exit status to the collector", %{proc: proc} do
+  test "it will forward the exit status to the server", %{proc: proc} do
     proc =
       proc
       |> Proc.command("/bin/echo")
@@ -100,7 +100,7 @@ defmodule DoProcess.Process.WorkerTest do
 
     %{exit_status: exit_status} =
       proc
-      |> ResultCollector.inspect
+      |> Server.result
     assert 0 == exit_status
   end
 

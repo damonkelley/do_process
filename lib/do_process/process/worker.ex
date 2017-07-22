@@ -1,26 +1,26 @@
 defmodule DoProcess.Process.Worker do
   use GenServer
 
-  alias DoProcess.Process.ResultCollector
+  alias DoProcess.Process.Server
 
-  def start_link(config) do
-    GenServer.start_link(__MODULE__, config, name: via_tuple(config))
+  def start_link(process) do
+    GenServer.start_link(__MODULE__, process, name: via_tuple(process))
   end
 
-  defp via_tuple(config) do
-    {:via, Registry, {config.options.registry, {:worker, config.name}}}
+  defp via_tuple(process) do
+    {:via, Registry, {process.options.registry, {:worker, process.name}}}
   end
 
-  def kill(config) do
-    GenServer.cast(via_tuple(config), :kill)
+  def kill(process) do
+    GenServer.cast(via_tuple(process), :kill)
   end
 
-  def init(%{command: command, arguments: args} = config) do
+  def init(%{command: command, arguments: args} = process) do
     port = Port.open({:spawn_executable, command},
                      [:binary, :exit_status, :stderr_to_stdout, args: args])
 
     ref = :erlang.monitor(:port, port)
-    {:ok, %{port: port, ref: ref, config: config}}
+    {:ok, %{port: port, ref: ref, process: process}}
   end
 
   def handle_cast(:kill, %{port: port} = state) do
@@ -28,18 +28,18 @@ defmodule DoProcess.Process.Worker do
     {:noreply, state}
   end
 
-  def handle_info({port, {:data, data}}, %{port: port, config: config} = state) do
-    collect(config, :stdout, data)
+  def handle_info({port, {:data, data}}, %{port: port, process: process} = state) do
+    collect(process, :stdout, data)
     {:noreply, state}
   end
 
-  def handle_info({port, {:exit_status, 0}}, %{config: config, port: port} = state) do
-    collect(config, :exit_status, 0)
+  def handle_info({port, {:exit_status, 0}}, %{process: process, port: port} = state) do
+    collect(process, :exit_status, 0)
     {:stop, :normal, state}
   end
 
-  def handle_info({port, {:exit_status, exit_status}}, %{config: config, port: port} = state) do
-    collect(config, :exit_status, exit_status)
+  def handle_info({port, {:exit_status, exit_status}}, %{process: process, port: port} = state) do
+    collect(process, :exit_status, exit_status)
     {:stop, :error, state}
   end
 
@@ -47,7 +47,7 @@ defmodule DoProcess.Process.Worker do
     {:stop, :normal, state}
   end
 
-  defp collect(config, tag, data) do
-    ResultCollector.collect(config, tag, data)
+  defp collect(process, tag, data) do
+    Server.collect(process, tag, data)
   end
 end

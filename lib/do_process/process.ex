@@ -11,6 +11,8 @@ defmodule DoProcess.Process do
   defstruct [name: nil,
              command: nil,
              arguments: [],
+             os_pid: nil,
+             result: nil,
              options: %Options{},
              extras: %{},
              restarts: 0]
@@ -25,15 +27,19 @@ defmodule DoProcess.Process do
                 restarts: restarts}
   end
 
-  def command(config, command) do
-    %__MODULE__{config | command: command}
+  def command(process, command) do
+    %__MODULE__{process | command: command}
   end
 
-  def arguments(config, arguments) do
-    %__MODULE__{config | arguments: arguments}
+  def arguments(process, arguments) do
+    %__MODULE__{process | arguments: arguments}
   end
 
-  def restarts(config, restarts) do
-    %__MODULE__{config | restarts: restarts}
+  def restarts(process, restarts) do
+    %__MODULE__{process | restarts: restarts}
+  end
+
+  def result(process, result) do
+    %__MODULE__{process | result: result}
   end
 end

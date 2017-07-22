@@ -2,7 +2,7 @@ defmodule DoProcess.Process.WorkerSupervisorTest do
   use ExUnit.Case, async: true
 
   alias DoProcess.Process.WorkerSupervisor
-  alias DoProcess.Process.ResultCollector
+  alias DoProcess.Process.Server
   alias DoProcess.Process, as: Proc
 
   setup do
@@ -13,7 +13,7 @@ defmodule DoProcess.Process.WorkerSupervisorTest do
       |> TestProcess.unique_registry_name
 
     {:ok, _} = DoProcess.Registry.start_link(proc.options.registry)
-    {:ok, _} = ResultCollector.start_link(proc)
+    {:ok, _} = Server.start_link(proc)
 
     {:ok, [proc: proc]}
   end
@@ -35,7 +35,7 @@ defmodule DoProcess.Process.WorkerSupervisorTest do
   end
 
   defp stdout(proc) do
-    %{stdout: stdout} = ResultCollector.inspect(proc)
+    %{stdout: stdout} = Server.result(proc)
     stdout
   end
 end

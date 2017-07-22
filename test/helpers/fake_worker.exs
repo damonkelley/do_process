@@ -1,39 +1,39 @@
 defmodule DoProcess.Process.FakeWorker do
   use GenServer
 
-  alias DoProcess.Process.ResultCollector
+  alias DoProcess.Process.Server
 
-  def start_link(config) do
-    GenServer.start_link( __MODULE__, config, name: via_tuple(config))
+  def start_link(process) do
+    GenServer.start_link( __MODULE__, process, name: via_tuple(process))
   end
 
-  def via_tuple(config) do
-      {:via, Registry, {config.options.registry, {:worker, config.name}}}
+  def via_tuple(process) do
+      {:via, Registry, {process.options.registry, {:worker, process.name}}}
   end
 
-  def init(%{extras: extras} = config) do
+  def init(%{extras: extras} = process) do
     %{startup_fn: fun} = extras
     send(self(), {:port, {:data, "started "}})
     fun.()
-    {:ok, config}
+    {:ok, process}
   end
 
-  def kill(config) do
-    GenServer.stop(via_tuple(config))
+  def kill(process) do
+    GenServer.stop(via_tuple(process))
   end
 
-  def handle_info({:port, {:data, data}}, config) do
-    ResultCollector.collect(config, :stdout, data)
-    {:noreply, config}
+  def handle_info({:port, {:data, data}}, process) do
+    Server.collect(process, :stdout, data)
+    {:noreply, process}
   end
 
-  def handle_info({:port, {:exit_status, 0}}, config) do
-    ResultCollector.collect(config, :exit_status, 0)
-    {:stop, :normal, config}
+  def handle_info({:port, {:exit_status, 0}}, process) do
+    Server.collect(process, :exit_status, 0)
+    {:stop, :normal, process}
   end
 
-  def handle_info({:port, {:exit_status, exit_status}}, config) do
-    ResultCollector.collect(config, :exit_status, exit_status)
-    {:stop, :error, config}
+  def handle_info({:port, {:exit_status, exit_status}}, process) do
+    Server.collect(process, :exit_status, exit_status)
+    {:stop, :error, process}
   end
 end

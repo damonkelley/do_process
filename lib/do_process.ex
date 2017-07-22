@@ -1,10 +1,10 @@
 defmodule DoProcess do
-  def start(config) do
-    Supervisor.start_child(DoProcess.ProcessesSupervisor, [config])
-    config
+  def start(process) do
+    Supervisor.start_child(DoProcess.ProcessesSupervisor, [process])
+    process
   end
 
-  def result(config) do
-    DoProcess.Process.ResultCollector.inspect(config)
+  def result(process) do
+    DoProcess.Process.Server.result(process)
   end
 end
