@@ -1,19 +1,3 @@
-# DoProcess
+# DoProcess [![Build Status](https://travis-ci.org/damonkelley/do_process.svg?branch=master)](https://travis-ci.org/damonkelley/do_process)
 
-**TODO: Add description**
-
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `doprocess` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [{:doprocess, "~> 0.1.0"}]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/doprocess](https://hexdocs.pm/doprocess).
-
+An Operating System Process Manager
