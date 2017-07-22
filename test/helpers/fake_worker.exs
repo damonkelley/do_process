@@ -4,20 +4,17 @@ defmodule DoProcess.Process.FakeWorker do
   alias DoProcess.Process.ResultCollector
 
   def start_link(config) do
-    GenServer.start_link(
-      __MODULE__,
-      config,
-      name: {:via, Registry, {config.registry, {:worker, config.name}}})
+    GenServer.start_link( __MODULE__, config, name: via_tuple(config))
   end
 
   def via_tuple(config) do
-      {:via, Registry, {config.registry, {:worker, config.name}}}
+      {:via, Registry, {config.options.registry, {:worker, config.name}}}
   end
 
-  def init(%{process_args: process_args} = config) do
-    %{startup_fn: fun} = process_args
+  def init(%{extras: extras} = config) do
+    %{startup_fn: fun} = extras
     send(self(), {:port, {:data, "started "}})
-    fun.(process_args)
+    fun.()
     {:ok, config}
   end
 

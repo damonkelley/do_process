@@ -8,14 +8,14 @@ defmodule DoProcess.Process.Worker do
   end
 
   defp via_tuple(config) do
-    {:via, Registry, {config.registry, {:worker, config.name}}}
+    {:via, Registry, {config.options.registry, {:worker, config.name}}}
   end
 
   def kill(config) do
     GenServer.cast(via_tuple(config), :kill)
   end
 
-  def init(%{process_args: %{command: command, args: args}} = config) do
+  def init(%{command: command, arguments: args} = config) do
     port = Port.open({:spawn_executable, command},
                      [:binary, :exit_status, :stderr_to_stdout, args: args])
 

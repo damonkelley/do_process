@@ -12,7 +12,7 @@ defmodule DoProcess.Mixfile do
 
   def application do
     [extra_applications: [:logger],
-     mod: {DoProcess, []}]
+     mod: {DoProcess.Application, []}]
   end
 
   defp deps do

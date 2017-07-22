@@ -3,40 +3,40 @@ defmodule DoProcess.Process.WorkerSupervisorTest do
 
   alias DoProcess.Process.WorkerSupervisor
   alias DoProcess.Process.ResultCollector
-  alias DoProcess.Process.Config
+  alias DoProcess.Process, as: Proc
 
   setup do
     Process.flag(:trap_exit, true)
-    config =
-      TestConfig.new
-      |> Config.restarts(3)
-      |> TestConfig.unique_registry_name
+    proc =
+      TestProcess.new
+      |> Proc.restarts(3)
+      |> TestProcess.unique_registry_name
 
-    {:ok, _} = DoProcess.Registry.start_link(config.registry)
-    {:ok, _} = ResultCollector.start_link(config)
+    {:ok, _} = DoProcess.Registry.start_link(proc.options.registry)
+    {:ok, _} = ResultCollector.start_link(proc)
 
-    {:ok, [config: config]}
+    {:ok, [proc: proc]}
   end
 
-  test "it will start a process will be started", %{config: config} do
-    WorkerSupervisor.start_link(config)
+  test "it will start a proc will be started", %{proc: proc} do
+    WorkerSupervisor.start_link(proc)
 
-    assert "started " == stdout(config)
+    assert "started " == stdout(proc)
   end
 
   @tag capture_log: true
-  test "it will restart a process if is exits abnormally", %{config: config} do
-    config = TestConfig.exit_status(config, 1)
+  test "it will restart a proc if is exits abnormally", %{proc: proc} do
+    proc = TestProcess.exit_status(proc, 1)
 
-    {:ok, pid} = WorkerSupervisor.start_link(config)
+    {:ok, pid} = WorkerSupervisor.start_link(proc)
 
     assert_receive {:EXIT, ^pid, :shutdown}
-    assert "started started started started " == stdout(config)
+    assert "started started started started " == stdout(proc)
   end
 
-  defp stdout(config) do
+  defp stdout(proc) do
     %{stdout: stdout} =
-      config
+      proc
       |> ResultCollector.inspect
     stdout
   end

@@ -8,7 +8,7 @@ defmodule DoProcess.Process.ResultCollector do
   end
 
   defp via_tuple(config) do
-    {:via, Registry, {config.registry, {:collector, config.name}}}
+    {:via, Registry, {config.options.registry, {:collector, config.name}}}
   end
 
   def init(initial) do
