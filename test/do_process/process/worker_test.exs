@@ -6,7 +6,7 @@ defmodule DoProcess.Process.WorkerTest do
 
   @moduletag :posix
 
-  defmodule Server do
+  defmodule Controller do
     use GenServer
     @behaviour DoProcess.Process.Collector
 
@@ -33,9 +33,9 @@ defmodule DoProcess.Process.WorkerTest do
     proc =
       TestProcess.posix()
       |> TestProcess.unique_registry_name
-      |> Proc.options(:server, Server)
+      |> Proc.options(:server, Controller)
 
-    {:ok, _} = Server.start_link(self())
+    {:ok, _} = Controller.start_link(self())
     {:ok, _} = DoProcess.Registry.start_link(proc.options.registry)
 
     {:ok, [proc: proc]}

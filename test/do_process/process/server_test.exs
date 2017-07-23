@@ -1,7 +1,7 @@
-defmodule DoProcess.Process.ServerTest do
+defmodule DoProcess.Process.ControllerTest do
   use ExUnit.Case, async: true
 
-  alias DoProcess.Process.Server
+  alias DoProcess.Process.Controller
   alias DoProcess.Process, as: Proc
 
   defmodule Worker do
@@ -18,7 +18,7 @@ defmodule DoProcess.Process.ServerTest do
       |> Proc.options(:worker, Worker)
 
     {:ok, _} = DoProcess.Registry.start_link(proc.options.registry)
-    Server.start_link(proc)
+    Controller.start_link(proc)
 
     {:ok, [proc: proc]}
   end
@@ -26,10 +26,10 @@ defmodule DoProcess.Process.ServerTest do
   test "it will append the stdout output", %{proc: proc} do
     result =
       proc
-      |> Server.collect(:stdout, "hello ")
-      |> Server.collect(:stdout, "world")
-      |> Server.collect(:stdout, "!!!")
-      |> Server.result
+      |> Controller.collect(:stdout, "hello ")
+      |> Controller.collect(:stdout, "world")
+      |> Controller.collect(:stdout, "!!!")
+      |> Controller.result
 
     assert "hello world!!!" == result.stdout
   end
@@ -37,8 +37,8 @@ defmodule DoProcess.Process.ServerTest do
   test "it will collect an exit_status", %{proc: proc} do
     result =
       proc
-      |> Server.collect(:exit_status, 127)
-      |> Server.result
+      |> Controller.collect(:exit_status, 127)
+      |> Controller.result
 
     assert 127 == result.exit_status
   end
@@ -46,20 +46,20 @@ defmodule DoProcess.Process.ServerTest do
   test "it will collect the os_pid", %{proc: proc} do
     proc =
       proc
-      |> Server.collect(:os_pid, 49012)
-      |> Server.process
+      |> Controller.collect(:os_pid, 49012)
+      |> Controller.process
 
     assert 49012 == proc.os_pid
   end
 
   test "it has a default exit_status of :unknown", %{proc: proc} do
-    result = proc |> Server.result
+    result = proc |> Controller.result
 
     assert :unknown == result.exit_status
   end
 
   test "it will kill a process", %{proc: proc} do
-    :ok = Server.kill(proc)
+    :ok = Controller.kill(proc)
     %{name: name}  = proc
     assert_receive {:killed, ^name}
   end

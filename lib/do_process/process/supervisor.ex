@@ -7,8 +7,8 @@ defmodule DoProcess.Process.Supervisor do
 
   def init(process) do
     children = [
-      worker(DoProcess.Process.Server, [process], restart: :transient),
-      supervisor(DoProcess.Process.WorkerSupervisor, [process], restart: :transient)
+      worker(DoProcess.Process.Controller, [process], restart: :transient),
+      supervisor(DoProcess.Process.Worker.Supervisor, [process], restart: :transient)
     ]
 
     supervise(children, strategy: :one_for_one)

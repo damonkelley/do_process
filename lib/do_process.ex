@@ -1,6 +1,6 @@
 defmodule DoProcess do
-  alias DoProcess.Process.Server, as: ProcessServer
+  alias DoProcess.Process.Controller
 
   defdelegate start(process), to: DoProcess.Server
-  defdelegate result(process), to: ProcessServer
+  defdelegate result(process), to: Controller
 end

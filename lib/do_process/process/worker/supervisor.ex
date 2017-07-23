@@ -1,4 +1,4 @@
-defmodule DoProcess.Process.WorkerSupervisor do
+defmodule DoProcess.Process.Worker.Supervisor do
   use Supervisor
 
   def start_link(process) do

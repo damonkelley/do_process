@@ -1,6 +1,6 @@
 defmodule DoProcess.Process.Options do
   defstruct [worker: DoProcess.Process.Worker,
-             server: DoProcess.Process.Server,
+             server: DoProcess.Process.Controller,
              registry: DoProcess.Registry]
 
   def option(options, :worker, worker) do
