@@ -17,9 +17,11 @@ defmodule DoProcess.Process.Options do
 end
 
 defmodule DoProcess.Process do
+  @moduledoc false
 
   alias DoProcess.Process.Options
 
+  @type t :: %__MODULE__{}
   @enforce_keys [:name]
   defstruct [name: nil,
              command: nil,
@@ -29,8 +31,6 @@ defmodule DoProcess.Process do
              options: %Options{},
              extras: %{},
              restarts: 0]
-
-  @type t :: %__MODULE__{}
 
   def new(name, command, opts \\ []) do
     arguments = Keyword.get(opts, :arguments, [])
