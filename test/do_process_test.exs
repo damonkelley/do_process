@@ -1,49 +1,30 @@
 defmodule DoProcessTest do
   use ExUnit.Case, async: true
 
-  alias DoProcess.Process, as: Proc
-
-  @moduletag capture_log: true
-
-  setup do
-    Application.ensure_started(:do_process)
-    on_exit fn ->
-      Application.stop(:do_process)
+  defmodule TestWorker do
+    def start_link(process)do
+      Agent.start_link fn -> process end
     end
   end
 
-  test "it will create a process that exits successfully" do
-    result =
-      TestProcess.new
-      |> TestProcess.exit_status(0)
-      |> DoProcess.start
-      |> DoProcess.result
+  defmodule TestSupervisor do
+    use Supervisor
+    def start_link(name) do
+      Supervisor.start_link(__MODULE__, [], name: name)
+    end
 
-    assert %{exit_status: 0} = result
+    def init(_) do
+      children = [worker(TestWorker, [], restart: :permanent)]
+      supervise(children, strategy: :simple_one_for_one)
+    end
   end
 
-  test "it will create a daemon process" do
-    result =
-      TestProcess.new
-      |> DoProcess.start
-      |> DoProcess.result
+  test "it will start a process", context do
+    TestSupervisor.start_link(context.test)
+    proc = TestProcess.new
 
-    assert %{exit_status: :unknown} = result
-  end
+    DoProcess.start(proc, supervisor: context.test)
 
-  test "it will create two isolated processes" do
-    daemon = TestProcess.new
-             |> Proc.restarts(3)
-             |> DoProcess.start
-             |> DoProcess.result
-
-    failure = TestProcess.new
-              |> TestProcess.exit_status(1)
-              |> Proc.restarts(4)
-              |> DoProcess.start
-              |> DoProcess.result
-
-    assert 1 == failure.exit_status
-    assert :unknown == daemon.exit_status
+    assert %{active: 1} = Supervisor.count_children(context.test)
   end
 end

@@ -1,6 +1,11 @@
 defmodule DoProcess do
   alias DoProcess.Process.Controller
 
-  defdelegate start(process), to: DoProcess.Server
+  def start(process, opts \\ []) do
+    supervisor = Keyword.get(opts, :supervisor, DoProcess.ProcessesSupervisor)
+    Supervisor.start_child(supervisor, [process])
+    process
+  end
+
   defdelegate result(process), to: Controller
 end
