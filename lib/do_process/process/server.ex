@@ -36,6 +36,10 @@ defmodule DoProcess.Process.Server do
     GenServer.call(via_tuple(process), :process)
   end
 
+  def kill(process) do
+    process.options.worker.kill(process)
+  end
+
   def init(process) do
     {:ok, Proc.result(process, %Result{})}
   end

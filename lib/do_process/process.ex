@@ -1,6 +1,19 @@
 defmodule DoProcess.Process.Options do
   defstruct [worker: DoProcess.Process.Worker,
+             server: DoProcess.Process.Server,
              registry: DoProcess.Registry]
+
+  def option(options, :worker, worker) do
+    %__MODULE__{options | worker: worker}
+  end
+
+  def option(options, :registry, registry) do
+    %__MODULE__{options | registry: registry}
+  end
+
+  def option(options, :server, server) do
+    %__MODULE__{options | server: server}
+  end
 end
 
 defmodule DoProcess.Process do
@@ -41,5 +54,9 @@ defmodule DoProcess.Process do
 
   def result(process, result) do
     %__MODULE__{process | result: result}
+  end
+
+  def options(%{options: options} = process, field, value) do
+    %__MODULE__{process | options: Options.option(options, field, value)}
   end
 end

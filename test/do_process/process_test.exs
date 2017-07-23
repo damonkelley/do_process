@@ -19,4 +19,15 @@ defmodule DoProcess.ProcessTest do
     assert ["arg"] == proc.arguments
     assert 4 == proc.restarts
   end
+  test "it will accepts custom options" do
+    proc =
+      Proc.new("name", "command")
+      |> Proc.options(:worker, MyWorker)
+      |> Proc.options(:registry, MyRegistry)
+      |> Proc.options(:server, MyServer)
+
+    assert MyWorker == proc.options.worker
+    assert MyRegistry == proc.options.registry
+    assert MyServer == proc.options.server
+  end
 end
