@@ -1,8 +1,6 @@
 defmodule DoProcess.Process.Worker do
   use GenServer
 
-  alias DoProcess.Process.Server
-
   def start_link(process) do
     GenServer.start_link(__MODULE__, process, name: via_tuple(process))
   end
@@ -48,6 +46,6 @@ defmodule DoProcess.Process.Worker do
   end
 
   defp collect(process, tag, data) do
-    Server.collect(process, tag, data)
+    process.options.server.collect(process, tag, data)
   end
 end

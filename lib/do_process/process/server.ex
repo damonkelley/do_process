@@ -1,4 +1,6 @@
 defmodule DoProcess.Process.Server do
+  @behaviour DoProcess.Process.Collector
+
   alias DoProcess.Process, as: Proc
 
   defmodule Result do

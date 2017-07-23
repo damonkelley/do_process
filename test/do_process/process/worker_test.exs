@@ -3,21 +3,44 @@ defmodule DoProcess.Process.WorkerTest do
 
   alias DoProcess.Process.Worker
   alias DoProcess.Process, as: Proc
-  alias DoProcess.Process.Server
 
   @moduletag :posix
 
+  defmodule Server do
+    use GenServer
+    @behaviour DoProcess.Process.Collector
+
+    def start_link(pid) do
+      GenServer.start_link(__MODULE__, pid, name: __MODULE__)
+    end
+
+    def collect(process, type, data) do
+      GenServer.call(__MODULE__, {:collect, {type, data}})
+      process
+    end
+
+    def init(pid), do: {:ok, pid}
+
+    def handle_call({:collect, msg}, _from, pid) do
+      send pid, msg
+      {:reply, pid, pid}
+    end
+  end
+
   setup do
+
     Process.flag(:trap_exit, true)
     proc =
       TestProcess.posix()
       |> TestProcess.unique_registry_name
+      |> Proc.options(:server, Server)
 
+    {:ok, _} = Server.start_link(self())
     {:ok, _} = DoProcess.Registry.start_link(proc.options.registry)
-    {:ok, _} = Server.start_link(proc)
 
     {:ok, [proc: proc]}
   end
+
 
   test "it will run a command", %{proc: proc} do
     proc =
@@ -63,12 +86,7 @@ defmodule DoProcess.Process.WorkerTest do
 
     Worker.start_link proc
 
-    :timer.sleep(10)
-
-    %{stdout: stdout} =
-      proc
-      |> Server.result
-    assert "hello, world!\n" == stdout
+    assert_receive {:stdout, "hello, world!\n"}
   end
 
   @tag capture_log: true
@@ -80,12 +98,11 @@ defmodule DoProcess.Process.WorkerTest do
 
     Worker.start_link proc
 
-    :timer.sleep(10)
-
-    %{stdout: stdout} =
-      proc
-      |> Server.result
-    assert stdout =~ "command not found"
+    receive do
+      {:stdout, msg} -> assert msg =~ "command not found"
+    after
+      100 -> flunk()
+    end
   end
 
   test "it will forward the exit status to the server", %{proc: proc} do
@@ -96,12 +113,7 @@ defmodule DoProcess.Process.WorkerTest do
 
     Worker.start_link proc
 
-    :timer.sleep(10)
-
-    %{exit_status: exit_status} =
-      proc
-      |> Server.result
-    assert 0 == exit_status
+    assert_receive {:exit_status, 0}
   end
 
   test "it is registed with the procured registry", %{proc: proc} do

@@ -30,6 +30,8 @@ defmodule DoProcess.Process do
              extras: %{},
              restarts: 0]
 
+  @type t :: %__MODULE__{}
+
   def new(name, command, opts \\ []) do
     arguments = Keyword.get(opts, :arguments, [])
     restarts  = Keyword.get(opts, :restarts, 0)
