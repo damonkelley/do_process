@@ -1,10 +1,6 @@
 defmodule DoProcess do
-  def start(process) do
-    Supervisor.start_child(DoProcess.ProcessesSupervisor, [process])
-    process
-  end
+  alias DoProcess.Process.Server, as: ProcessServer
 
-  def result(process) do
-    DoProcess.Process.Server.result(process)
-  end
+  defdelegate start(process), to: DoProcess.Server
+  defdelegate result(process), to: ProcessServer
 end

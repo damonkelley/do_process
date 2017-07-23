@@ -3,8 +3,13 @@ defmodule DoProcessTest do
 
   alias DoProcess.Process, as: Proc
 
+  @moduletag capture_log: true
+
   setup do
     Application.ensure_started(:do_process)
+    on_exit fn ->
+      Application.stop(:do_process)
+    end
   end
 
   test "it will create a process that exits successfully" do
@@ -26,7 +31,6 @@ defmodule DoProcessTest do
     assert %{exit_status: :unknown} = result
   end
 
-  @tag capture_log: true
   test "it will create two isolated processes" do
     daemon = TestProcess.new
              |> Proc.restarts(3)
@@ -41,13 +45,5 @@ defmodule DoProcessTest do
 
     assert 1 == failure.exit_status
     assert :unknown == daemon.exit_status
-  end
-
-  @tag :skip
-  @tag capture_log: true
-  test "it will list the processes" do
-    daemon = TestProcess.new |> DoProcess.start
-
-    assert [daemon] == DoProcess.list
   end
 end
