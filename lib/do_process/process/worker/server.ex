@@ -1,13 +1,4 @@
 defmodule DoProcess.Process.Worker.Server do
-  use GenServer
-
-  def start_link(process) do
-    GenServer.start_link(__MODULE__, process, name: via_tuple(process))
-  end
-
-  def via_tuple(process) do
-    {:via, Registry, {process.options.registry, {:worker, process.name}}}
-  end
 
   def init(%{command: command, arguments: args} = process) do
     port = Port.open({:spawn_executable, command},

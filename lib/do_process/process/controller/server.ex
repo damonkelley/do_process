@@ -5,14 +5,6 @@ defmodule DoProcess.Process.Controller.Server do
     defstruct [stdout: "", stderr: "", exit_status: :unknown]
   end
 
-  def start_link(process) do
-    GenServer.start_link(__MODULE__, process, name: via_tuple(process))
-  end
-
-  def via_tuple(process) do
-    {:via, Registry, {process.options.registry, {:server, process.name}}}
-  end
-
   def init(process) do
     {:ok, Proc.result(process, %Result{})}
   end

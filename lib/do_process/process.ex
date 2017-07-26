@@ -1,25 +1,6 @@
-defmodule DoProcess.Process.Options do
-  defstruct [worker: DoProcess.Process.Worker,
-             server: DoProcess.Process.Controller,
-             registry: DoProcess.Registry]
-
-  def option(options, :worker, worker) do
-    %__MODULE__{options | worker: worker}
-  end
-
-  def option(options, :registry, registry) do
-    %__MODULE__{options | registry: registry}
-  end
-
-  def option(options, :server, server) do
-    %__MODULE__{options | server: server}
-  end
-end
-
 defmodule DoProcess.Process do
-  @moduledoc false
 
-  alias DoProcess.Process.Options
+  alias __MODULE__.Options
 
   @type t :: %__MODULE__{}
   @enforce_keys [:name]

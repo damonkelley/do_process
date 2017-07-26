@@ -4,30 +4,34 @@ defmodule DoProcess.Process.Controller do
   alias __MODULE__.Server
 
   def start_link(process) do
-    Server.start_link(process)
+    GenServer.start_link(Server, process, name: via_tuple(process))
+  end
+
+  defp via_tuple(process) do
+    {:via, Registry, {process.options.registry, {:server, process.name}}}
   end
 
   def collect(process, :stdout, data) do
-    GenServer.cast(Server.via_tuple(process), {:stdout, data})
+    GenServer.cast(via_tuple(process), {:stdout, data})
     process
   end
 
   def collect(process, :exit_status, data) do
-    GenServer.cast(Server.via_tuple(process), {:exit_status, data})
+    GenServer.cast(via_tuple(process), {:exit_status, data})
     process
   end
 
   def collect(process, :os_pid, data) do
-    GenServer.cast(Server.via_tuple(process), {:os_pid, data})
+    GenServer.cast(via_tuple(process), {:os_pid, data})
     process
   end
 
   def result(process) do
-    GenServer.call(Server.via_tuple(process), :result)
+    GenServer.call(via_tuple(process), :result)
   end
 
   def process(process) do
-    GenServer.call(Server.via_tuple(process), :process)
+    GenServer.call(via_tuple(process), :process)
   end
 
   def kill(process) do
