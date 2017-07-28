@@ -8,7 +8,7 @@ defmodule DoProcess.Process.WorkerTest do
 
   defmodule Controller do
     use GenServer
-    @behaviour DoProcess.Process.Collector
+    @behaviour DoProcess.Collector
 
     def start_link(pid) do
       GenServer.start_link(__MODULE__, pid, name: __MODULE__)

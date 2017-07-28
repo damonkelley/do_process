@@ -47,7 +47,7 @@ defmodule DoProcess.Process.ControllerTest do
     proc =
       proc
       |> Controller.collect(:os_pid, 49012)
-      |> Controller.process
+      |> Controller.result
 
     assert 49012 == proc.os_pid
   end

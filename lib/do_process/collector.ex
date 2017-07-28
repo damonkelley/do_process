@@ -1,4 +1,4 @@
-defmodule DoProcess.Process.Collector do
+defmodule DoProcess.Collector do
   alias DoProcess.Process, as: Proc
 
   @type collectable :: :stdout | :exit_status | :os_pid

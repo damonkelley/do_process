@@ -8,7 +8,7 @@ defmodule DoProcess.Process do
              command: nil,
              arguments: [],
              os_pid: nil,
-             result: nil,
+             state: nil,
              options: %Options{},
              extras: %{},
              restarts: 0]
@@ -35,8 +35,8 @@ defmodule DoProcess.Process do
     %__MODULE__{process | restarts: restarts}
   end
 
-  def result(process, result) do
-    %__MODULE__{process | result: result}
+  def state(process, state) do
+    %__MODULE__{process | state: state}
   end
 
   def options(%{options: options} = process, field, value) do

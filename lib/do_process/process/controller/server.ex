@@ -1,29 +1,29 @@
 defmodule DoProcess.Process.Controller.Server do
   alias DoProcess.Process, as: Proc
 
-  defmodule Result do
-    defstruct [stdout: "", stderr: "", exit_status: :unknown]
+  defmodule State do
+    defstruct [stdout: "", stderr: "", exit_status: :unknown, os_pid: nil]
   end
 
   def init(process) do
-    {:ok, Proc.result(process, %Result{})}
+    {:ok, Proc.state(process, %State{})}
   end
 
-  def handle_cast({:stdout, data}, %{result: result} = process) do
-    %{stdout: stdout} = result
-    {:noreply, Proc.result(process, %{result | stdout: stdout <> data})}
+  def handle_cast({:stdout, data}, %{state: state} = process) do
+    %{stdout: stdout} = state
+    {:noreply, Proc.state(process, %{state | stdout: stdout <> data})}
   end
 
-  def handle_cast({:exit_status, exit_status}, %{result: result} = process) do
-    {:noreply, Proc.result(process, %{result | exit_status: exit_status})}
+  def handle_cast({:exit_status, exit_status}, %{state: state} = process) do
+    {:noreply, Proc.state(process, %{state | exit_status: exit_status})}
   end
 
-  def handle_cast({:os_pid, os_pid}, process) do
-    {:noreply, %Proc{process| os_pid: os_pid}}
+  def handle_cast({:os_pid, os_pid}, %{state: state} = process) do
+    {:noreply, Proc.state(process, %{state | os_pid: os_pid})}
   end
 
-  def handle_call(:result, _from, %{result: result} = process) do
-    {:reply, result, process}
+  def handle_call(:state, _from, %{state: state} = process) do
+    {:reply, state, process}
   end
 
   def handle_call(:process, _from, process) do

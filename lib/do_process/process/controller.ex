@@ -1,5 +1,5 @@
 defmodule DoProcess.Process.Controller do
-  @behaviour DoProcess.Process.Collector
+  @behaviour DoProcess.Collector
 
   alias __MODULE__.Server
 
@@ -27,11 +27,7 @@ defmodule DoProcess.Process.Controller do
   end
 
   def result(process) do
-    GenServer.call(via_tuple(process), :result)
-  end
-
-  def process(process) do
-    GenServer.call(via_tuple(process), :process)
+    GenServer.call(via_tuple(process), :state)
   end
 
   def kill(process) do
