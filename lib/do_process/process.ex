@@ -23,6 +23,16 @@ defmodule DoProcess.Process do
                 restarts: restarts}
   end
 
+  def start(process) do
+    supervisor = process.options.processes_supervisor
+    supervisor.start_child(process)
+    process
+  end
+
+  def kill(process) do
+    process.options.server.kill(process)
+  end
+
   def command(process, command) do
     %__MODULE__{process | command: command}
   end
