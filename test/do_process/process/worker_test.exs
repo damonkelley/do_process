@@ -27,26 +27,27 @@ defmodule DoProcess.Process.WorkerTest do
     end
   end
 
-  setup do
-
+  setup context do
     Process.flag(:trap_exit, true)
-    proc =
-      TestProcess.posix()
-      |> TestProcess.unique_registry_name
-      |> Proc.options(:server, Controller)
+
+      Proc.new(Atom.to_string(context.test), "/bin/echo")
+      |> Proc.options(:registry, context.test)
+      |> Proc.options(:controller, Controller)
 
     {:ok, _} = Controller.start_link(self())
-    {:ok, _} = DoProcess.Registry.start_link(proc.options.registry)
+    {:ok, _} = DoProcess.Registry.start_link(context.test)
 
-    {:ok, [proc: proc]}
+    :ok
   end
 
+  def build_process(context, command, arguments \\ []) do
+      Proc.new(Atom.to_string(context.test), command, arguments: arguments)
+      |> Proc.options(:registry, context.test)
+      |> Proc.options(:controller, Controller)
+  end
 
-  test "it will run a command", %{proc: proc} do
-    proc =
-      proc
-      |> Proc.command("/bin/echo")
-      |> Proc.arguments(["hello world"])
+  test "it will run a command", context do
+    proc = build_process(context, "/bin/echo", ["hello world"])
 
     {:ok, pid} = Worker.start_link proc
 
@@ -55,11 +56,8 @@ defmodule DoProcess.Process.WorkerTest do
   end
 
   @tag capture_log: true
-  test "it will terminate with an error the port exits with a non-zero", %{proc: proc} do
-    proc =
-      proc
-      |> Proc.command("/bin/bash")
-      |> Proc.arguments(["-c", "not-a-command"])
+  test "it will terminate with an error the port exits with a non-zero", context do
+    proc = build_process(context, "/bin/bash", ["-c", "not-a-command"])
 
     {:ok, pid} = Worker.start_link proc
 
@@ -67,8 +65,8 @@ defmodule DoProcess.Process.WorkerTest do
     assert_receive {:DOWN, ^ref, :process, ^pid, :error}
   end
 
-  test "it will terminate normally if the port is killed", %{proc: proc} do
-    proc = Proc.command(proc, "/bin/cat")
+  test "it will terminate normally if the port is killed", context do
+    proc = build_process(context, "/bin/cat")
 
     {:ok, pid} = Worker.start_link proc
 
@@ -78,11 +76,8 @@ defmodule DoProcess.Process.WorkerTest do
     assert_receive {:DOWN, ^ref, :process, ^pid, :normal}
   end
 
-  test "it will capture stdout", %{proc: proc} do
-    proc =
-      proc
-      |> Proc.command("/bin/echo")
-      |> Proc.arguments(["hello, world!"])
+  test "it will capture stdout", context do
+    proc = build_process(context, "/bin/echo", ["hello, world!"])
 
     Worker.start_link proc
 
@@ -90,11 +85,8 @@ defmodule DoProcess.Process.WorkerTest do
   end
 
   @tag capture_log: true
-  test "it will capture stderr", %{proc: proc} do
-    proc =
-      proc
-      |> Proc.command("/bin/bash")
-      |> Proc.arguments(["-c", "not-a-command"])
+  test "it will capture stderr", context do
+    proc = build_process(context, "/bin/bash", ["-c", "not-a-command"])
 
     Worker.start_link proc
 
@@ -105,22 +97,16 @@ defmodule DoProcess.Process.WorkerTest do
     end
   end
 
-  test "it will forward the exit status to the server", %{proc: proc} do
-    proc =
-      proc
-      |> Proc.command("/bin/echo")
-      |> Proc.arguments(["hello, world!"])
+  test "it will forward the exit status to the controller", context do
+    proc = build_process(context, "/bin/echo", ["hello, world!"])
 
     Worker.start_link proc
 
     assert_receive {:exit_status, 0}
   end
 
-  test "it is registed with the procured registry", %{proc: proc} do
-    proc =
-      proc
-      |> Proc.command("/bin/echo")
-      |> Proc.arguments(["hello, world!"])
+  test "it is registed with the procured registry", context do
+    proc = build_process(context, "/bin/echo", ["hello, world!"])
 
     {:ok, pid} = Worker.start_link proc
 

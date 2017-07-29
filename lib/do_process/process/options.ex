@@ -1,7 +1,7 @@
 defmodule DoProcess.Process.Options do
   defstruct [worker: DoProcess.Process.Worker,
-             server: DoProcess.Process.Controller,
-             processes_supervisor: DoProcess.ProcessesSupervisor,
+             controller: DoProcess.Process.Controller,
+             supervisor: DoProcess.ProcessesSupervisor,
              registry: DoProcess.Registry]
 
   def option(options, :worker, worker) do
@@ -12,12 +12,12 @@ defmodule DoProcess.Process.Options do
     %__MODULE__{options | registry: registry}
   end
 
-  def option(options, :server, server) do
-    %__MODULE__{options | server: server}
+  def option(options, :controller, controller) do
+    %__MODULE__{options | controller: controller}
   end
 
-  def option(options, :processes_supervisor, server) do
-    %__MODULE__{options | processes_supervisor: server}
+  def option(options, :supervisor, supervisor) do
+    %__MODULE__{options | supervisor: supervisor}
   end
 end
 

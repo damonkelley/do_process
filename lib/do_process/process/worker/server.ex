@@ -33,6 +33,6 @@ defmodule DoProcess.Process.Worker.Server do
   end
 
   defp collect(process, tag, data) do
-    process.options.server.collect(process, tag, data)
+    process.options.controller.collect(process, tag, data)
   end
 end
