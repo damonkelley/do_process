@@ -2,40 +2,68 @@ defmodule DoProcess.Process.Worker.SupervisorTest do
   use ExUnit.Case, async: true
 
   alias DoProcess.Process.Worker.Supervisor, as: WorkerSupervisor
-  alias DoProcess.Process.Controller
   alias DoProcess.Process, as: Proc
+
+  defmodule Worker do
+    use GenServer
+
+    def start_link(%{extras: extras, name: name} = _process) do
+      send extras.test_pid, "started"
+      GenServer.start_link(__MODULE__, [], name: name)
+    end
+
+    def init(_) do
+      {:ok, nil}
+    end
+  end
+
+  defmodule FailingWorker do
+    use GenServer
+
+    def start_link(%{extras: extras, name: name}) do
+      send extras.test_pid, "started"
+      GenServer.start_link(__MODULE__, [], name: name)
+    end
+
+    def init(_) do
+      Process.send_after(self(), :error, 10)
+      {:ok, nil}
+    end
+
+    def handle_info(:error, _state) do
+      Process.exit(self(), :error)
+    end
+  end
 
   setup do
     Process.flag(:trap_exit, true)
-    proc =
-      TestProcess.new
-      |> Proc.restarts(3)
-      |> TestProcess.unique_registry_name
-
-    {:ok, _} = DoProcess.Registry.start_link(proc.options.registry)
-    {:ok, _} = Controller.start_link(proc)
-
-    {:ok, [proc: proc]}
+    :ok
   end
 
-  test "it will start a proc will be started", %{proc: proc} do
-    WorkerSupervisor.start_link(proc)
+  test "it will start a proc will be started", context do
+    proc =
+      context.test
+      |> Proc.new("command", extras: %{test_pid: self()})
+      |> Proc.options(:worker, Worker)
 
-    assert "started " == stdout(proc)
+    {:ok, _} = WorkerSupervisor.start_link(proc)
+
+    assert_receive "started"
   end
 
   @tag capture_log: true
-  test "it will restart a proc if is exits abnormally", %{proc: proc} do
-    proc = TestProcess.exit_status(proc, 1)
+  test "it will restart a proc if is exits abnormally", context do
+    proc =
+      context.test
+      |> Proc.new("command", restarts: 3, extras: %{test_pid: self()})
+      |> Proc.options(:worker, FailingWorker)
 
     {:ok, pid} = WorkerSupervisor.start_link(proc)
 
-    assert_receive {:EXIT, ^pid, :shutdown}
-    assert "started started started started " == stdout(proc)
-  end
+    for _ <- 0..proc.restarts do
+      assert_receive "started"
+    end
 
-  defp stdout(proc) do
-    %{stdout: stdout} = Controller.result(proc)
-    stdout
+    assert_receive {:EXIT, ^pid, :shutdown}
   end
 end
