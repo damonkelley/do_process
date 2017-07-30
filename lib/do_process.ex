@@ -3,7 +3,7 @@ defmodule DoProcess do
 
   def start(process, opts \\ []) do
     supervisor = Keyword.get(opts, :supervisor, DoProcess.ProcessesSupervisor)
-    Supervisor.start_child(supervisor, [process])
+    {:ok, _} = Supervisor.start_child(supervisor, [process])
     process
   end
 

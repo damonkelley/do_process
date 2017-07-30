@@ -29,11 +29,6 @@ defmodule DoProcess.Process.WorkerTest do
 
   setup context do
     Process.flag(:trap_exit, true)
-
-      Proc.new(Atom.to_string(context.test), "/bin/echo")
-      |> Proc.options(:registry, context.test)
-      |> Proc.options(:controller, Controller)
-
     {:ok, _} = Controller.start_link(self())
     {:ok, _} = DoProcess.Registry.start_link(context.test)
 

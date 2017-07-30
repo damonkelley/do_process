@@ -11,14 +11,14 @@ defmodule DoProcess.Process.ControllerTest do
     end
   end
 
-  setup do
+  setup context do
     proc =
-      TestProcess.new
-      |> TestProcess.unique_registry_name
+      Proc.new(context.test, "command")
       |> Proc.options(:worker, Worker)
+      |> Proc.options(:registry, context.test)
 
     {:ok, _} = DoProcess.Registry.start_link(proc.options.registry)
-    Controller.start_link(proc)
+    {:ok, _} = Controller.start_link(proc)
 
     {:ok, [proc: proc]}
   end

@@ -12,9 +12,11 @@ defmodule DoProcess.Process.FakeWorker do
   end
 
   def init(%{extras: extras} = process) do
-    %{startup_fn: fun} = extras
     send(self(), {:port, {:data, "started "}})
-    fun.()
+    case extras do
+      %{startup_fn: fun} -> fun.()
+      _ -> nil
+    end
     {:ok, process}
   end
 

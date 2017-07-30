@@ -1,6 +1,9 @@
 defmodule DoProcessTest do
   use ExUnit.Case, async: true
 
+  alias DoProcess.Process.FakeWorker
+  alias DoProcess.Process, as: Proc
+
   defmodule TestWorker do
     def start_link(process)do
       Agent.start_link fn -> process end
@@ -21,7 +24,11 @@ defmodule DoProcessTest do
 
   test "it will start a process", context do
     TestSupervisor.start_link(context.test)
-    proc = TestProcess.new
+
+    proc =
+      context.test
+      |> Proc.new("command")
+      |> Proc.options(:worker, FakeWorker)
 
     DoProcess.start(proc, supervisor: context.test)
 
