@@ -35,32 +35,15 @@ defmodule DoProcess.Process do
     process.options.controller.kill(process)
   end
 
-  def put(process, key, value) do
-    Map.put(process, key, value)
-  end
-
-  def update(process, opts) do
-    updates = opts |> Enum.into(%{})
-    Map.merge(process, updates)
-  end
-
-  def command(process, command) do
-    put(process, :command, command)
-  end
-
-  def arguments(process, arguments) do
-    put(process, :arguments, arguments)
-  end
-
-  def restarts(process, restarts) do
-    put(process, :restarts, restarts)
-  end
-
   def state(process, state) do
     put(process, :state, state)
   end
 
   def options(%{options: options} = process, field, value) do
     put(process, :options, Options.option(options, field, value))
+  end
+
+  defp put(process, key, value) do
+    Map.put(process, key, value)
   end
 end
