@@ -3,5 +3,6 @@ defmodule DoProcess do
   alias __MODULE__.Process.Controller
 
   defdelegate start(process), to: Process
-  defdelegate result(process), to: Controller
+  defdelegate kill(process), to: Process
+  defdelegate state(process), to: Controller
 end

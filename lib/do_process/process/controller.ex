@@ -26,7 +26,7 @@ defmodule DoProcess.Process.Controller do
     process
   end
 
-  def result(process) do
+  def state(process) do
     GenServer.call(via_tuple(process), :state)
   end
 

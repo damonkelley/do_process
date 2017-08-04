@@ -13,25 +13,25 @@ defmodule DoProcessIntegrationTest do
   end
 
   test "it will create a process that exits successfully", context do
-    result =
+    state =
       context.test
       |> Proc.new("command", extras: %{startup_fn: exit_status(0)})
       |> Proc.options(:worker, FakeWorker)
       |> DoProcess.start
-      |> DoProcess.result
+      |> DoProcess.state
 
-    assert %{exit_status: 0} = result
+    assert %{exit_status: 0} = state
   end
 
   test "it will create a daemon process", context do
-    result =
+    state =
       context.test
       |> Proc.new("command")
       |> Proc.options(:worker, FakeWorker)
       |> DoProcess.start
-      |> DoProcess.result
+      |> DoProcess.state
 
-    assert %{exit_status: :unknown} = result
+    assert %{exit_status: :unknown} = state
   end
 
   test "it will create two isolated processes" do
@@ -40,14 +40,14 @@ defmodule DoProcessIntegrationTest do
       |> Proc.new("command")
       |> Proc.options(:worker, FakeWorker)
       |> DoProcess.start
-      |> DoProcess.result
+      |> DoProcess.state
 
     failure =
       "failure"
       |> Proc.new("command", restarts: 4,  extras: %{startup_fn: exit_status(1)})
       |> Proc.options(:worker, FakeWorker)
       |> DoProcess.start
-      |> DoProcess.result
+      |> DoProcess.state
 
     assert 1 == failure.exit_status
     assert :unknown == daemon.exit_status

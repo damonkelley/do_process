@@ -24,38 +24,38 @@ defmodule DoProcess.Process.ControllerTest do
   end
 
   test "it will append the stdout output", %{proc: proc} do
-    result =
+    state =
       proc
       |> Controller.collect(:stdout, "hello ")
       |> Controller.collect(:stdout, "world")
       |> Controller.collect(:stdout, "!!!")
-      |> Controller.result
+      |> Controller.state
 
-    assert "hello world!!!" == result.stdout
+    assert "hello world!!!" == state.stdout
   end
 
   test "it will collect an exit_status", %{proc: proc} do
-    result =
+    state =
       proc
       |> Controller.collect(:exit_status, 127)
-      |> Controller.result
+      |> Controller.state
 
-    assert 127 == result.exit_status
+    assert 127 == state.exit_status
   end
 
   test "it will collect the os_pid", %{proc: proc} do
     proc =
       proc
       |> Controller.collect(:os_pid, 49012)
-      |> Controller.result
+      |> Controller.state
 
     assert 49012 == proc.os_pid
   end
 
   test "it has a default exit_status of :unknown", %{proc: proc} do
-    result = proc |> Controller.result
+    state = proc |> Controller.state
 
-    assert :unknown == result.exit_status
+    assert :unknown == state.exit_status
   end
 
   test "it will kill a process", %{proc: proc} do
