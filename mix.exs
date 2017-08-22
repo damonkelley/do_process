@@ -1,4 +1,4 @@
-defmodule DoProcess.System.Mixfile do
+defmodule DoProcess.Umbrella.Mixfile do
   use Mix.Project
 
   def project do
